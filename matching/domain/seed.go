@@ -6,8 +6,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/bxcodec/faker/v3"
+	"github.com/cespare/xxhash/v2"
 	"log"
 	"math/rand"
+	"strings"
 	"time"
 )
 
@@ -31,7 +33,7 @@ func (d *Domain) CreateMultiSelectQuestion() error {
 		choices = append(choices, faker.Word())
 	}
 	multiSelectQuestion := &store.MultiSelectQuestion{
-		FilterId:          fmt.Sprintf("%v-%v-%v", faker.Word(), faker.Word(), faker.Word()),
+		FilterId:          strings.ToLower(fmt.Sprintf("%v-%v-%v", faker.Word(), faker.Word(), faker.Word())),
 		PossibleResponses: choices,
 	}
 	return d.store.CreateMultiSelectQuestion(multiSelectQuestion)
@@ -102,7 +104,7 @@ func StudyInStudySlice(study *store.Study, studies []*store.Study) bool {
 
 func GenerateQuestionResponse(question *store.MultiSelectQuestion) (filterId string, selectedValues []string) {
 	filterId = question.FilterId
-	selectedValues = RandomSelections(question.PossibleResponses, randBetween(1, len(question.PossibleResponses)))
+	selectedValues = RandomSelections(question.PossibleResponses, randBetween(5, 10))
 	return
 }
 
@@ -113,6 +115,34 @@ func GenerateQuestionsAnswered(questions []*store.MultiSelectQuestion) map[strin
 		questionsAnswered[filterId] = selectedValues
 	}
 	return questionsAnswered
+}
+
+func generate32BitHash(input string) string {
+	data := []byte(input)
+	hash := xxhash.Sum64(data)
+	// Take the lower 32 bits of the hash
+	hash32bit := uint32(hash & 0xFFFFFFFF)
+	return fmt.Sprintf("%08x", hash32bit)
+}
+
+func generateJsonForDataLetter(questions []*store.MultiSelectQuestion, letter string) []byte {
+	data := make(map[string]interface{})
+	for _, q := range questions {
+		if q.FilterId[0:1] != letter {
+			continue
+		}
+		selectedResponses := RandomSelections(q.PossibleResponses, randBetween(2, 5))
+		hashedResponses := []string{}
+		for _, response := range selectedResponses {
+			hashedResponses = append(hashedResponses, generate32BitHash(response))
+		}
+		data[q.FilterId] = hashedResponses
+	}
+	dataJson, err := json.Marshal(data)
+	if err != nil {
+		panic(err)
+	}
+	return dataJson
 }
 
 func (d *Domain) GenerateParticipant(
@@ -151,20 +181,42 @@ func (d *Domain) GenerateParticipant(
 	for i, pg := range pgMemberships {
 		pgIds[i] = pg.ID.String()
 	}
-	questionsSelected := RandomSelections(questions, randBetween(90, 110))
-	questionResponses := GenerateQuestionsAnswered(questionsSelected)
-	responsesJson, err := json.Marshal(questionResponses)
-	if err != nil {
-		return err
-	}
+	questionsSelected := RandomSelections(questions, randBetween(280, 320))
 
 	participant := store.Participant{
 		StudiesStarted:              studyIdsStarted,
 		StudiesCompleted:            studyIdsCompleted,
 		StudiesRejected:             studyIdsRejected,
 		ParticipantGroupMemberships: pgIds,
-		FilterResponses:             responsesJson,
+		Status:                      "Active",
+		DataA:                       generateJsonForDataLetter(questionsSelected, "a"),
+		DataB:                       generateJsonForDataLetter(questionsSelected, "b"),
+		DataC:                       generateJsonForDataLetter(questionsSelected, "c"),
+		DataD:                       generateJsonForDataLetter(questionsSelected, "d"),
+		DataE:                       generateJsonForDataLetter(questionsSelected, "e"),
+		DataF:                       generateJsonForDataLetter(questionsSelected, "f"),
+		DataG:                       generateJsonForDataLetter(questionsSelected, "g"),
+		DataH:                       generateJsonForDataLetter(questionsSelected, "h"),
+		DataI:                       generateJsonForDataLetter(questionsSelected, "i"),
+		DataJ:                       generateJsonForDataLetter(questionsSelected, "j"),
+		DataK:                       generateJsonForDataLetter(questionsSelected, "k"),
+		DataL:                       generateJsonForDataLetter(questionsSelected, "l"),
+		DataM:                       generateJsonForDataLetter(questionsSelected, "m"),
+		DataN:                       generateJsonForDataLetter(questionsSelected, "n"),
+		DataO:                       generateJsonForDataLetter(questionsSelected, "o"),
+		DataP:                       generateJsonForDataLetter(questionsSelected, "p"),
+		DataQ:                       generateJsonForDataLetter(questionsSelected, "q"),
+		DataR:                       generateJsonForDataLetter(questionsSelected, "r"),
+		DataS:                       generateJsonForDataLetter(questionsSelected, "s"),
+		DataT:                       generateJsonForDataLetter(questionsSelected, "t"),
+		DataU:                       generateJsonForDataLetter(questionsSelected, "u"),
+		DataV:                       generateJsonForDataLetter(questionsSelected, "v"),
+		DataW:                       generateJsonForDataLetter(questionsSelected, "w"),
+		DataX:                       generateJsonForDataLetter(questionsSelected, "x"),
+		DataY:                       generateJsonForDataLetter(questionsSelected, "y"),
+		DataZ:                       generateJsonForDataLetter(questionsSelected, "z"),
 	}
+
 	returnChan <- participant
 	return nil
 }
@@ -200,12 +252,12 @@ func (d *Domain) SeedParticipants() {
 	}
 	questionPointers := sliceToPointerSlice(questions)
 
-	// Create 1.6M participants
+	// Create 1.8M participants
 	log.Println("Generating participants")
-	for i := 0; i < 1600; i++ {
-		tasks := make(chan func(), 1600)
-		participantsChan := make(chan store.Participant, 1600)
-		for i := 0; i < 1600; i++ {
+	for i := 0; i < 1000; i++ {
+		tasks := make(chan func(), 1800)
+		participantsChan := make(chan store.Participant, 1800)
+		for j := 0; j < 1800; j++ {
 			tasks <- func() {
 				d.GenerateParticipant(studiesPointers, pgPointers, questionPointers, participantsChan)
 			}
@@ -216,8 +268,8 @@ func (d *Domain) SeedParticipants() {
 
 		// Create the participants
 		log.Println("Saving participants")
-		participantTasks := make(chan func(), 1600)
-		for i := 0; i < 1600; i++ {
+		participantTasks := make(chan func(), 1800)
+		for j := 0; j < 1800; j++ {
 			participantTasks <- func() {
 				participant := <-participantsChan
 				d.CreateParticipant(&participant)
@@ -232,4 +284,20 @@ func (d *Domain) SeedParticipants() {
 func (d *Domain) Seed() {
 	d.SeedCoreData()
 	d.SeedParticipants()
+}
+
+func (d *Domain) CreateLastActive() error {
+	qtyLastActive90Days, err := d.store.GetNumberOfParticipantsActiveInLast90Days()
+	if err != nil {
+		panic(err)
+	}
+	if qtyLastActive90Days < 250000 {
+		log.Println(fmt.Sprintf("There are %v participants active in the last 90 days, marking 1000 as active", qtyLastActive90Days))
+		err = d.store.Mark1000ParticipantsActive()
+		if err != nil {
+			panic(err)
+		}
+	}
+	log.Println("Last active participants updated")
+	return nil
 }

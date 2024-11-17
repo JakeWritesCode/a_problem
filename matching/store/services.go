@@ -1,5 +1,11 @@
 package store
 
+import (
+	"log"
+	"math/rand"
+	"time"
+)
+
 func (s *PostgresStore) CreateParticipant(participant *Participant) error {
 	return s.Conn.Create(participant).Error
 }
@@ -72,4 +78,32 @@ func (s *PostgresStore) GetAllMultiSelectQuestions() ([]MultiSelectQuestion, err
 	var multiSelectQuestions []MultiSelectQuestion
 	err := s.Conn.Find(&multiSelectQuestions).Error
 	return multiSelectQuestions, err
+}
+
+func (s *PostgresStore) GetNumberOfParticipantsActiveInLast90Days() (int, error) {
+	count := int64(0)
+	err := s.Conn.Model(&Participant{}).Where("last_active_at > ?", time.Now().AddDate(0, 0, -90)).Count(&count).Error
+	return int(count), err
+}
+
+func randBetween(min, max int) int {
+	return rand.Intn(max-min) + min
+}
+
+func (s *PostgresStore) Mark1000ParticipantsActive() error {
+	participants := make([]Participant, 1000)
+	err := s.Conn.Model(&Participant{}).Where("last_active_at < ?", time.Now().AddDate(0, 0, -90)).Limit(1000).Pluck("id", &participants).Error
+	if err != nil {
+		return err
+	}
+	for _, participant := range participants {
+		// Random time last 90 days
+		participant.LastActiveAt = time.Now().AddDate(0, 0, -randBetween(0, 90))
+		err = s.Conn.Model(&participant).Update("last_active_at", participant.LastActiveAt).Error
+		if err != nil {
+			return err
+		}
+		log.Println("Marked participant active")
+	}
+	return nil
 }

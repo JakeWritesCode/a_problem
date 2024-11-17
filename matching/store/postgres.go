@@ -11,6 +11,7 @@ type PostgresStoreInterface interface {
 	CreateParticipant(participant *Participant) error
 	UpdateParticipant(participant *Participant) error
 	GetParticipantByID(id string) (*Participant, error)
+	//GetAllParticipants() ([]Participant, error)
 	CreateStudy(study *Study) error
 	UpdateStudy(study *Study) error
 	GetStudyByID(id string) (*Study, error)
@@ -23,6 +24,8 @@ type PostgresStoreInterface interface {
 	UpdateMultiSelectQuestion(multiSelectQuestion *MultiSelectQuestion) error
 	GetMultiSelectQuestionByID(id string) (*MultiSelectQuestion, error)
 	GetAllMultiSelectQuestions() ([]MultiSelectQuestion, error)
+	GetNumberOfParticipantsActiveInLast90Days() (int, error)
+	Mark1000ParticipantsActive() error
 }
 
 type PostgresStore struct {
@@ -61,7 +64,7 @@ func (s *PostgresStore) Migrate() error {
 }
 
 func NewPostgresStore() (*PostgresStore, error) {
-	connectionUrl := "someURL"
+	connectionUrl := "postgres://postgres:JakesP0Str3sP@ssw0rd@192.168.1.200:5432/matching_test"
 	store := &PostgresStore{ConnectionURL: connectionUrl}
 	err := store.Initialize()
 	if err != nil {

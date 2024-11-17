@@ -4,5 +4,7 @@ import "a_problem/matching/domain"
 
 func main() {
 	d := domain.NewDomain()
-	d.Seed()
+	d.CreateLastActive()
+	//d.SeedCoreData()
+	//d.SeedParticipants()
 }
