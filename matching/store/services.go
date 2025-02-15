@@ -1,6 +1,7 @@
 package store
 
 import (
+	"gorm.io/gorm"
 	"log"
 	"math/rand"
 	"time"
@@ -106,4 +107,8 @@ func (s *PostgresStore) Mark1000ParticipantsActive() error {
 		log.Println("Marked participant active")
 	}
 	return nil
+}
+
+func (s *PostgresStore) GetStore() *gorm.DB {
+	return s.Conn
 }

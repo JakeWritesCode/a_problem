@@ -3,7 +3,6 @@ package domain
 import (
 	"a_problem/lines/utils"
 	"a_problem/matching/store"
-	"encoding/json"
 	"fmt"
 	"github.com/bxcodec/faker/v3"
 	"github.com/cespare/xxhash/v2"
@@ -104,7 +103,7 @@ func StudyInStudySlice(study *store.Study, studies []*store.Study) bool {
 
 func GenerateQuestionResponse(question *store.MultiSelectQuestion) (filterId string, selectedValues []string) {
 	filterId = question.FilterId
-	selectedValues = RandomSelections(question.PossibleResponses, randBetween(5, 10))
+	selectedValues = RandomSelections(question.PossibleResponses, randBetween(1, 3))
 	return
 }
 
@@ -125,27 +124,7 @@ func generate32BitHash(input string) string {
 	return fmt.Sprintf("%08x", hash32bit)
 }
 
-func generateJsonForDataLetter(questions []*store.MultiSelectQuestion, letter string) []byte {
-	data := make(map[string]interface{})
-	for _, q := range questions {
-		if q.FilterId[0:1] != letter {
-			continue
-		}
-		selectedResponses := RandomSelections(q.PossibleResponses, randBetween(2, 5))
-		hashedResponses := []string{}
-		for _, response := range selectedResponses {
-			hashedResponses = append(hashedResponses, generate32BitHash(response))
-		}
-		data[q.FilterId] = hashedResponses
-	}
-	dataJson, err := json.Marshal(data)
-	if err != nil {
-		panic(err)
-	}
-	return dataJson
-}
-
-func (d *Domain) GenerateParticipant(
+func (d *Domain) GenerateAndSaveParticipant(
 	studies []*store.Study,
 	pgs []*store.ParticipantGroup,
 	questions []*store.MultiSelectQuestion,
@@ -181,7 +160,7 @@ func (d *Domain) GenerateParticipant(
 	for i, pg := range pgMemberships {
 		pgIds[i] = pg.ID.String()
 	}
-	questionsSelected := RandomSelections(questions, randBetween(280, 320))
+	questionsSelected := RandomSelections(questions, randBetween(100, 200))
 
 	participant := store.Participant{
 		StudiesStarted:              studyIdsStarted,
@@ -189,35 +168,333 @@ func (d *Domain) GenerateParticipant(
 		StudiesRejected:             studyIdsRejected,
 		ParticipantGroupMemberships: pgIds,
 		Status:                      "Active",
-		DataA:                       generateJsonForDataLetter(questionsSelected, "a"),
-		DataB:                       generateJsonForDataLetter(questionsSelected, "b"),
-		DataC:                       generateJsonForDataLetter(questionsSelected, "c"),
-		DataD:                       generateJsonForDataLetter(questionsSelected, "d"),
-		DataE:                       generateJsonForDataLetter(questionsSelected, "e"),
-		DataF:                       generateJsonForDataLetter(questionsSelected, "f"),
-		DataG:                       generateJsonForDataLetter(questionsSelected, "g"),
-		DataH:                       generateJsonForDataLetter(questionsSelected, "h"),
-		DataI:                       generateJsonForDataLetter(questionsSelected, "i"),
-		DataJ:                       generateJsonForDataLetter(questionsSelected, "j"),
-		DataK:                       generateJsonForDataLetter(questionsSelected, "k"),
-		DataL:                       generateJsonForDataLetter(questionsSelected, "l"),
-		DataM:                       generateJsonForDataLetter(questionsSelected, "m"),
-		DataN:                       generateJsonForDataLetter(questionsSelected, "n"),
-		DataO:                       generateJsonForDataLetter(questionsSelected, "o"),
-		DataP:                       generateJsonForDataLetter(questionsSelected, "p"),
-		DataQ:                       generateJsonForDataLetter(questionsSelected, "q"),
-		DataR:                       generateJsonForDataLetter(questionsSelected, "r"),
-		DataS:                       generateJsonForDataLetter(questionsSelected, "s"),
-		DataT:                       generateJsonForDataLetter(questionsSelected, "t"),
-		DataU:                       generateJsonForDataLetter(questionsSelected, "u"),
-		DataV:                       generateJsonForDataLetter(questionsSelected, "v"),
-		DataW:                       generateJsonForDataLetter(questionsSelected, "w"),
-		DataX:                       generateJsonForDataLetter(questionsSelected, "x"),
-		DataY:                       generateJsonForDataLetter(questionsSelected, "y"),
-		DataZ:                       generateJsonForDataLetter(questionsSelected, "z"),
 	}
 
-	returnChan <- participant
+	err := d.store.CreateParticipant(&participant)
+	if err != nil {
+		return err
+	}
+	questionData := make(map[string][]string, len(questionsSelected))
+	for _, q := range questionsSelected {
+		filterId, selectedValues := GenerateQuestionResponse(q)
+		questionData[filterId] = selectedValues
+	}
+	for filterId, selectedValues := range questionData {
+		switch filterId[0] {
+		case 'a':
+			for _, value := range selectedValues {
+				attr := &store.ParticipantAttributesA{
+					ParticipantID: participant.ID.String(),
+					FilterID:      filterId,
+					Response:      value,
+				}
+				err := d.store.GetStore().Create(attr).Error
+				if err != nil {
+					return err
+				}
+			}
+		case 'b':
+			for _, value := range selectedValues {
+				attr := &store.ParticipantAttributesB{
+					ParticipantID: participant.ID.String(),
+					FilterID:      filterId,
+					Response:      value,
+				}
+				err := d.store.GetStore().Create(attr).Error
+				if err != nil {
+					return err
+				}
+			}
+		case 'c':
+			for _, value := range selectedValues {
+				attr := &store.ParticipantAttributesC{
+					ParticipantID: participant.ID.String(),
+					FilterID:      filterId,
+					Response:      value,
+				}
+				err := d.store.GetStore().Create(attr).Error
+				if err != nil {
+					return err
+				}
+			}
+		case 'd':
+			for _, value := range selectedValues {
+				attr := &store.ParticipantAttributesD{
+					ParticipantID: participant.ID.String(),
+					FilterID:      filterId,
+					Response:      value,
+				}
+				err := d.store.GetStore().Create(attr).Error
+				if err != nil {
+					return err
+				}
+			}
+		case 'e':
+			for _, value := range selectedValues {
+				attr := &store.ParticipantAttributesE{
+					ParticipantID: participant.ID.String(),
+					FilterID:      filterId,
+					Response:      value,
+				}
+				err := d.store.GetStore().Create(attr).Error
+				if err != nil {
+					return err
+				}
+			}
+		case 'f':
+			for _, value := range selectedValues {
+				attr := &store.ParticipantAttributesF{
+					ParticipantID: participant.ID.String(),
+					FilterID:      filterId,
+					Response:      value,
+				}
+				err := d.store.GetStore().Create(attr).Error
+				if err != nil {
+					return err
+				}
+			}
+		case 'g':
+			for _, value := range selectedValues {
+				attr := &store.ParticipantAttributesG{
+					ParticipantID: participant.ID.String(),
+					FilterID:      filterId,
+					Response:      value,
+				}
+				err := d.store.GetStore().Create(attr).Error
+				if err != nil {
+					return err
+				}
+			}
+		case 'h':
+			for _, value := range selectedValues {
+				attr := &store.ParticipantAttributesH{
+					ParticipantID: participant.ID.String(),
+					FilterID:      filterId,
+					Response:      value,
+				}
+				err := d.store.GetStore().Create(attr).Error
+				if err != nil {
+					return err
+				}
+			}
+		case 'i':
+			for _, value := range selectedValues {
+				attr := &store.ParticipantAttributesI{
+					ParticipantID: participant.ID.String(),
+					FilterID:      filterId,
+					Response:      value,
+				}
+				err := d.store.GetStore().Create(attr).Error
+				if err != nil {
+					return err
+				}
+			}
+		case 'j':
+			for _, value := range selectedValues {
+				attr := &store.ParticipantAttributesJ{
+					ParticipantID: participant.ID.String(),
+					FilterID:      filterId,
+					Response:      value,
+				}
+				err := d.store.GetStore().Create(attr).Error
+				if err != nil {
+					return err
+				}
+			}
+		case 'k':
+			for _, value := range selectedValues {
+				attr := &store.ParticipantAttributesK{
+					ParticipantID: participant.ID.String(),
+					FilterID:      filterId,
+					Response:      value,
+				}
+				err := d.store.GetStore().Create(attr).Error
+				if err != nil {
+					return err
+				}
+			}
+		case 'l':
+			for _, value := range selectedValues {
+				attr := &store.ParticipantAttributesL{
+					ParticipantID: participant.ID.String(),
+					FilterID:      filterId,
+					Response:      value,
+				}
+				err := d.store.GetStore().Create(attr).Error
+				if err != nil {
+					return err
+				}
+			}
+		case 'm':
+			for _, value := range selectedValues {
+				attr := &store.ParticipantAttributesM{
+					ParticipantID: participant.ID.String(),
+					FilterID:      filterId,
+					Response:      value,
+				}
+				err := d.store.GetStore().Create(attr).Error
+				if err != nil {
+					return err
+				}
+			}
+		case 'n':
+			for _, value := range selectedValues {
+				attr := &store.ParticipantAttributesN{
+					ParticipantID: participant.ID.String(),
+					FilterID:      filterId,
+					Response:      value,
+				}
+				err := d.store.GetStore().Create(attr).Error
+				if err != nil {
+					return err
+				}
+			}
+		case 'o':
+			for _, value := range selectedValues {
+				attr := &store.ParticipantAttributesO{
+					ParticipantID: participant.ID.String(),
+					FilterID:      filterId,
+					Response:      value,
+				}
+				err := d.store.GetStore().Create(attr).Error
+				if err != nil {
+					return err
+				}
+			}
+		case 'p':
+			for _, value := range selectedValues {
+				attr := &store.ParticipantAttributesP{
+					ParticipantID: participant.ID.String(),
+					FilterID:      filterId,
+					Response:      value,
+				}
+				err := d.store.GetStore().Create(attr).Error
+				if err != nil {
+					return err
+				}
+			}
+		case 'q':
+			for _, value := range selectedValues {
+				attr := &store.ParticipantAttributesQ{
+					ParticipantID: participant.ID.String(),
+					FilterID:      filterId,
+					Response:      value,
+				}
+				err := d.store.GetStore().Create(attr).Error
+				if err != nil {
+					return err
+				}
+			}
+		case 'r':
+			for _, value := range selectedValues {
+				attr := &store.ParticipantAttributesR{
+					ParticipantID: participant.ID.String(),
+					FilterID:      filterId,
+					Response:      value,
+				}
+				err := d.store.GetStore().Create(attr).Error
+				if err != nil {
+					return err
+				}
+			}
+		case 's':
+			for _, value := range selectedValues {
+				attr := &store.ParticipantAttributesS{
+					ParticipantID: participant.ID.String(),
+					FilterID:      filterId,
+					Response:      value,
+				}
+				err := d.store.GetStore().Create(attr).Error
+				if err != nil {
+					return err
+				}
+			}
+		case 't':
+			for _, value := range selectedValues {
+				attr := &store.ParticipantAttributesT{
+					ParticipantID: participant.ID.String(),
+					FilterID:      filterId,
+					Response:      value,
+				}
+				err := d.store.GetStore().Create(attr).Error
+				if err != nil {
+					return err
+				}
+			}
+		case 'u':
+			for _, value := range selectedValues {
+				attr := &store.ParticipantAttributesU{
+					ParticipantID: participant.ID.String(),
+					FilterID:      filterId,
+					Response:      value,
+				}
+				err := d.store.GetStore().Create(attr).Error
+				if err != nil {
+					return err
+				}
+			}
+		case 'v':
+			for _, value := range selectedValues {
+				attr := &store.ParticipantAttributesV{
+					ParticipantID: participant.ID.String(),
+					FilterID:      filterId,
+					Response:      value,
+				}
+				err := d.store.GetStore().Create(attr).Error
+				if err != nil {
+					return err
+				}
+			}
+		case 'w':
+			for _, value := range selectedValues {
+				attr := &store.ParticipantAttributesW{
+					ParticipantID: participant.ID.String(),
+					FilterID:      filterId,
+					Response:      value,
+				}
+				err := d.store.GetStore().Create(attr).Error
+				if err != nil {
+					return err
+				}
+			}
+		case 'x':
+			for _, value := range selectedValues {
+				attr := &store.ParticipantAttributesX{
+					ParticipantID: participant.ID.String(),
+					FilterID:      filterId,
+					Response:      value,
+				}
+				err := d.store.GetStore().Create(attr).Error
+				if err != nil {
+					return err
+				}
+			}
+		case 'y':
+			for _, value := range selectedValues {
+				attr := &store.ParticipantAttributesY{
+					ParticipantID: participant.ID.String(),
+					FilterID:      filterId,
+					Response:      value,
+				}
+				err := d.store.GetStore().Create(attr).Error
+				if err != nil {
+					return err
+				}
+			}
+		case 'z':
+			for _, value := range selectedValues {
+				attr := &store.ParticipantAttributesZ{
+					ParticipantID: participant.ID.String(),
+					FilterID:      filterId,
+					Response:      value,
+				}
+				err := d.store.GetStore().Create(attr).Error
+				if err != nil {
+					return err
+				}
+			}
+		}
+	}
 	return nil
 }
 
@@ -255,24 +532,10 @@ func (d *Domain) SeedParticipants() {
 	// Create 1.8M participants
 	log.Println("Generating participants")
 	for i := 0; i < 1000; i++ {
-		tasks := make(chan func(), 1800)
-		participantsChan := make(chan store.Participant, 1800)
-		for j := 0; j < 1800; j++ {
-			tasks <- func() {
-				d.GenerateParticipant(studiesPointers, pgPointers, questionPointers, participantsChan)
-			}
-		}
-		close(tasks)
-		// Batter the CPU with loads of workers
-		utils.RunInWorkerPool(tasks, 500)
-
-		// Create the participants
-		log.Println("Saving participants")
 		participantTasks := make(chan func(), 1800)
 		for j := 0; j < 1800; j++ {
 			participantTasks <- func() {
-				participant := <-participantsChan
-				d.CreateParticipant(&participant)
+				d.GenerateAndSaveParticipant(studiesPointers, pgPointers, questionPointers, nil)
 			}
 		}
 		close(participantTasks)

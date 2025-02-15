@@ -26,6 +26,7 @@ type PostgresStoreInterface interface {
 	GetAllMultiSelectQuestions() ([]MultiSelectQuestion, error)
 	GetNumberOfParticipantsActiveInLast90Days() (int, error)
 	Mark1000ParticipantsActive() error
+	GetStore() *gorm.DB
 }
 
 type PostgresStore struct {
@@ -60,11 +61,37 @@ func (s *PostgresStore) Migrate() error {
 		Study{},
 		ParticipantGroup{},
 		MultiSelectQuestion{},
+		ParticipantAttributesA{},
+		ParticipantAttributesB{},
+		ParticipantAttributesC{},
+		ParticipantAttributesD{},
+		ParticipantAttributesE{},
+		ParticipantAttributesF{},
+		ParticipantAttributesG{},
+		ParticipantAttributesH{},
+		ParticipantAttributesI{},
+		ParticipantAttributesJ{},
+		ParticipantAttributesK{},
+		ParticipantAttributesL{},
+		ParticipantAttributesM{},
+		ParticipantAttributesN{},
+		ParticipantAttributesO{},
+		ParticipantAttributesP{},
+		ParticipantAttributesQ{},
+		ParticipantAttributesR{},
+		ParticipantAttributesS{},
+		ParticipantAttributesT{},
+		ParticipantAttributesU{},
+		ParticipantAttributesV{},
+		ParticipantAttributesW{},
+		ParticipantAttributesX{},
+		ParticipantAttributesY{},
+		ParticipantAttributesZ{},
 	)
 }
 
 func NewPostgresStore() (*PostgresStore, error) {
-	connectionUrl := "postgres://postgres:JakesP0Str3sP@ssw0rd@192.168.1.200:5432/matching_test"
+	connectionUrl := "postgres://postgres:JakesP0Str3sP@ssw0rd@192.168.1.200:5432/matching_test_three"
 	store := &PostgresStore{ConnectionURL: connectionUrl}
 	err := store.Initialize()
 	if err != nil {
